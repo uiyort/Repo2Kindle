@@ -1,0 +1,48 @@
+# Repo2Kindle 配置文件
+# --------------------------------------------------------------
+# 每个 source 描述一个"按日期命名子目录发布内容"的 GitHub 仓库路径。
+# 脚本会在 path 下寻找名字匹配 pattern 的目录，取日期最新的一个，
+# 下载里面第一个匹配 format_priority 的文件，发送到 Kindle 邮箱。
+#
+# 想监控别的仓库/别的杂志，只需要照着下面的格式，在 sources 里加一条即可，
+# 不需要改 repo2kindle.py 里的任何代码。
+# --------------------------------------------------------------
+
+defaults:
+  # 找不到 source 自己指定的格式优先级时，用这个顺序
+  format_priority: [epub, mobi, pdf]
+
+sources:
+  - name: economist
+    label: "经济学人 The Economist"
+    repo: hehonghui/awesome-english-ebooks
+    path: 01_economist
+    # 目录名形如 te_2026.07.25，捕获组顺序须是 (年, 月, 日)
+    pattern: '^te_(\d{4})\.(\d{2})\.(\d{2})$'
+
+  - name: new_yorker
+    label: "纽约客 The New Yorker"
+    repo: hehonghui/awesome-english-ebooks
+    path: 02_new_yorker
+    pattern: '^(\d{4})\.(\d{2})\.(\d{2})$'
+
+  - name: atlantic
+    label: "大西洋月刊 The Atlantic"
+    repo: hehonghui/awesome-english-ebooks
+    path: 04_atlantic
+    pattern: '^(\d{4})\.(\d{2})\.(\d{2})$'
+
+  - name: wired
+    label: "连线 Wired"
+    repo: hehonghui/awesome-english-ebooks
+    path: 05_wired
+    pattern: '^(\d{4})\.(\d{2})\.(\d{2})$'
+
+  # 示例：如果哪天想加一本别的刊物/别的仓库，照抄下面这段改一下即可：
+  # - name: my_new_source
+  #   label: "自定义显示名"
+  #   repo: someuser/somerepo
+  #   path: some/sub/path
+  #   pattern: '^(\d{4})-(\d{2})-(\d{2})$'
+  #   format_priority: [pdf, epub]      # 可选，覆盖 defaults
+  #   recipient: another_xxx@kindle.com # 可选，覆盖全局 KINDLE_EMAIL，发到别的设备/邮箱
