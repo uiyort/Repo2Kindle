@@ -1,0 +1,51 @@
+# 放置路径：仓库根目录下的 .github/workflows/send-to-kindle.yml
+name: Repo2Kindle
+
+on:
+  schedule:
+    # UTC 10:00 周六 = 多伦多夏令时(EDT, UTC-4) 早 6:00
+    # 每年11月-次年3月冬令时(EST, UTC-5)期间会变成早 5:00，相差1小时，
+    # 如需全年精确对齐可在夏令时切换前后手动改这一行。
+    - cron: '0 10 * * 6'
+  workflow_dispatch: {}   # 允许在 Actions 页面手动点击运行，方便测试
+
+permissions:
+  contents: write   # 需要写权限，才能把 state.json 的更新提交回仓库
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Repo2Kindle
+        env:
+          KINDLE_EMAIL: ${{ secrets.KINDLE_EMAIL }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASS: ${{ secrets.SMTP_PASS }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCES: ${{ secrets.SOURCES }}   # 可选：如 "economist,new_yorker"
+        run: python repo2kindle.py
+
+      - name: Commit updated state file
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: update state.json"
+            git push
+          else
+            echo "状态文件无变化，无需提交"
+          fi
